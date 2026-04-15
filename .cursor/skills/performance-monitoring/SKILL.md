@@ -20,46 +20,6 @@ Start by measuring before optimizing. Common bottleneck sources in data-heavy ap
 3. **External API calls** — sequential when they could be parallel
 4. **Memory** — holding entire datasets in memory instead of streaming
 
-## Database Query Optimization
-
-### Use indexes for filtered columns
-If you frequently query by `source`, `medium`, or `campaign`, ensure those columns are indexed:
-```sql
-CREATE INDEX idx_source ON utm_links (source);
-CREATE INDEX idx_medium ON utm_links (medium);
-CREATE INDEX idx_campaign ON utm_links (campaign);
-```
-
-### Paginate large result sets
-Never fetch all 25k records at once. Use cursor-based or offset pagination:
-```typescript
-const { data } = await supabase
-  .from("utm_links")
-  .select("*")
-  .range(0, 99);
-```
-
-### Select only needed columns
-```typescript
-const { data } = await supabase
-  .from("utm_links")
-  .select("id, source, medium, campaign, final_url")
-  .eq("source", "linkedin");
-```
-
-## Parallel vs Sequential Operations
-
-When making multiple independent API calls, use `Promise.all`:
-```typescript
-const [links, stats, config] = await Promise.all([
-  fetchLinks(),
-  fetchStats(),
-  fetchConfig(),
-]);
-```
-
-For dependent operations, use sequential `await` to avoid race conditions.
-
 ## Timing Measurements
 
 Use `performance.now()` for high-resolution timing:
@@ -115,3 +75,4 @@ const getCached = async <T>(key: string, fetcher: () => Promise<T>, ttlMs = 60_0
 - [ ] Hot paths are measured with `performance.now()`
 - [ ] Memory usage stays stable under load (no leaks)
 - [ ] API responses include cache headers where appropriate
+- [ ] No unexpected outbound network calls — audit all endpoints, including any configured in tool metadata or YAML frontmatter
