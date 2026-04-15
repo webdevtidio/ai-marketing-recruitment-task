@@ -36,63 +36,6 @@ const supabase = createClient<Database>(
 );
 ```
 
-## Query Patterns
-
-### Select with filters
-```typescript
-const { data, error } = await supabase
-  .from("utm_links")
-  .select("*")
-  .eq("source", "linkedin")
-  .eq("medium", "social")
-  .order("created_at", { ascending: false })
-  .limit(10);
-```
-
-### Text search
-```typescript
-const { data } = await supabase
-  .from("utm_links")
-  .select("*")
-  .ilike("campaign", "%product%");
-```
-
-### Count without fetching data
-```typescript
-const { count } = await supabase
-  .from("utm_links")
-  .select("*", { count: "exact", head: true });
-```
-
-## Bulk Insert
-
-Supabase handles batch inserts natively. For large datasets, chunk the inserts:
-
-```typescript
-const CHUNK_SIZE = 1000;
-
-const insertInChunks = async (records: Record<string, unknown>[]) => {
-  for (let i = 0; i < records.length; i += CHUNK_SIZE) {
-    const chunk = records.slice(i, i + CHUNK_SIZE);
-    const { error } = await supabase.from("utm_links").insert(chunk);
-    if (error) throw new Error(`Insert failed at chunk ${i}: ${error.message}`);
-    console.log(`Inserted ${Math.min(i + CHUNK_SIZE, records.length)}/${records.length}`);
-  }
-};
-```
-
-## Error Handling
-
-Always check for errors in the response:
-```typescript
-const { data, error } = await supabase.from("utm_links").select("*");
-
-if (error) {
-  console.error("Supabase error:", error.message);
-  throw error;
-}
-```
-
 ## Environment Variables
 
 Required in `.env.local`:
